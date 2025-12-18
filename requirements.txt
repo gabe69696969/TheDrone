@@ -1,0 +1,2 @@
+# Core dependencies for the drone delivery system
+# No external dependencies needed - using Python standard library only
