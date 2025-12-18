@@ -52,7 +52,8 @@ class Drone:
     
     def can_deliver(self, delivery: Delivery, base: Location) -> bool:
         """Check if drone can complete delivery and return to base."""
-        if delivery.weight > self.max_capacity:
+        # Check if adding this delivery would exceed capacity
+        if self.current_load + delivery.weight > self.max_capacity:
             return False
         
         if not self.current_location:
@@ -105,6 +106,8 @@ class DeliveryRoute:
             return False
         
         self.deliveries.append(delivery)
+        # Update drone's current load
+        self.drone.current_load += delivery.weight
         return True
     
     def calculate_distance(self) -> float:

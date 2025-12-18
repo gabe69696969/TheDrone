@@ -287,6 +287,34 @@ class TestDeliveryPlanner(unittest.TestCase):
         self.assertIn('total_distance', summary)
         self.assertIn('pending_deliveries', summary)
         self.assertIn('routes', summary)
+    
+    def test_cumulative_capacity_tracking(self):
+        """Test that cumulative capacity is tracked correctly across multiple deliveries."""
+        base = Location("Base", 0, 0)
+        planner = DeliveryPlanner(base)
+        
+        # Drone can carry 5kg total
+        drone = Drone(1, max_range=200, max_capacity=5)
+        planner.add_drone(drone)
+        
+        # Add three deliveries: 2kg + 2kg + 2kg = 6kg total
+        # Should only be able to take first two (4kg), third should be skipped
+        deliveries = [
+            Delivery(1, Location("A", 5, 5), 2.0),
+            Delivery(2, Location("B", 10, 10), 2.0),
+            Delivery(3, Location("C", 15, 15), 2.0),  # This should not fit
+        ]
+        for delivery in deliveries:
+            planner.add_delivery(delivery)
+        
+        routes = planner.plan_routes()
+        
+        # Should create one route with only 2 deliveries (capacity: 4kg out of 5kg)
+        self.assertEqual(len(routes), 1)
+        self.assertEqual(len(routes[0].deliveries), 2)
+        # Third delivery should remain pending
+        self.assertEqual(len(planner.pending_deliveries), 1)
+        self.assertEqual(planner.pending_deliveries[0].id, 3)
 
 
 if __name__ == '__main__':
